@@ -1,3 +1,4 @@
+
 	#include p18f87k22.inc
 	
 	code
@@ -7,15 +8,34 @@
 	org 0x100		    		; Main code starts here at address 0x100
 
 start
-	movlw 	0x0					; Move literal (0) to WREG
-	movwf	TRISB, ACCESS	    ; Move WREG literal to FREG, assign file register to TRISB. Port C all outputs
-	bra 	test				; Branch to test
-loop	movff 	0x06, PORTB		; Move from FREG address 0x06 to PORTB 
-	incf 	0x06, W, ACCESS		; 
-test	movwf	0x06, ACCESS	; Test for end of loop condition. Move from WREF to FREG, at address 0x06
-	movlw 	0x63				; Move literal (0x63) to WREG
-	cpfsgt 	0x06, ACCESS		; Compare FREG at address 0x06 with WREG. If greater, skip next line. Else, branch to loop
-	bra 	loop		    	; Not yet finished goto start of loop again
-	goto 	0x0		    		; Re-run program from start
+	movlw 	0xfc		    ; Move literal (0) to WREG
+	movwf	TRISD, ACCESS	    ; Move WREG literal to FREG, assign file register to TRISB. Port C all outputs
+	movlw	0x03
+	movwf	0x06		    ; set 3 into 0x06 for OE1
+	movff	0x06, PORTD
+	movlw 	0x0		    ; Move literal (0) to WREG
+	movwf	TRISE, ACCESS	    ; Move WREG literal to FREG, assign file register to TRISB. Port C all outputs
+ 	clrf	TRISE
+	movlw	0x05
+	movwf	0x07
+	movff	0x07, PORTE
+	call	delay
+	banksel PADCFG1 ; PADCFG1 is not in Access Bank!!
+	bsf	PADCFG1, REPU, BANKED ; PortE pull-ups on
+	movlb	0x00 ; set BSR back to Bank 0
+	setf	TRISE ; Tri-state PortE
+	movlw	0x00
+	movwf	0x07
+	movff	0x07, PORTD	    ; Lowers OE1, memory outputs
+	goto	0x0
+
+delay	nop			    ; Do nothing for 250ns
+	nop
+	nop
+	nop
+	movlw	0x02		    ; Only lower CP1
+	movwf	0x06		    ; set 3 into 0x06 for OE1
+	movff	0x06, PORTD
+	return 
 	
 	end
