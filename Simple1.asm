@@ -1,21 +1,35 @@
-	#include p18f87k22.inc
-	
-	code
-	org 0x0
-	goto	start
-	
-	org 0x100		    		; Main code starts here at address 0x100
+
+#include p18f87k22.inc
+
+code
+org 0x0
+goto	start
+
+org 0x100		    		; Main code starts here at address 0x100
 
 start
-	movlw 	0x0					; Move literal (0) to WREG
-	movwf	TRISB, ACCESS	    ; Move WREG literal to FREG, assign file register to TRISB. Port C all outputs
-	bra 	test				; Branch to test
-loop	movff 	0x06, PORTB		; Move from FREG address 0x06 to PORTB 
-	incf 	0x06, W, ACCESS		; 
-test	movwf	0x06, ACCESS	; Test for end of loop condition. Move from WREF to FREG, at address 0x06
-	movlw 	0x63				; Move literal (0x63) to WREG
-	cpfsgt 	0x06, ACCESS		; Compare FREG at address 0x06 with WREG. If greater, skip next line. Else, branch to loop
-	bra 	loop		    	; Not yet finished goto start of loop again
-	goto 	0x0		    		; Re-run program from start
-	
-	end
+    call    SPI_MasterInit
+    movlw   0x05
+    call    SPI_MasterTransmit
+    
+    goto    0x0
+    
+SPI_MasterInit ; Set Clock edge to positive
+    bcf	    SSP2STAT, CKE
+    ; MSSP enable; CKP=1; SPI master, clock=Fosc/64 (1MHz)
+    movlw   (1<<SSPEN)|(1<<CKP)|(0x02)
+    movwf   SSP2CON1
+    ; SDO2 output; SCK2 output
+    bcf	    TRISD, SDO2
+    bcf	    TRISD, SCK2
+    return
+
+SPI_MasterTransmit ; Start transmission of data (held in W)
+    movwf   SSP2BUF
+Wait_Transmit ; Wait for transmission to complete
+    btfss   PIR2, SSP2IF
+    bra	    Wait_Transmit
+    bcf	    PIR2, SSP2IF ; clear interrupt flag
+    return
+
+    end
