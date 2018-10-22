@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message
+    global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_row_shift
 
 acs0    udata_acs   ; named variables in access ram
 LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -8,6 +8,7 @@ LCD_cnt_h   res 1   ; reserve 1 byte for variable LCD_cnt_h
 LCD_cnt_ms  res 1   ; reserve 1 byte for ms counter
 LCD_tmp	    res 1   ; reserve 1 byte for temporary use
 LCD_counter res 1   ; reserve 1 byte for counting through nessage
+LCD_shift_counter res 1 ; reserve 1 byte for shift counter
 
 	constant    LCD_E=5	; LCD enable bit
     	constant    LCD_RS=4	; LCD register select bit
@@ -20,7 +21,7 @@ LCD_Setup
 	movwf	TRISB
 	movlw   .40
 	call	LCD_delay_ms	; wait 40ms for LCD to start up properly
-	movlw	b'00110000'	; Function set 4-bit
+	movlw	b'00000010'	; Function set 4-bit
 	call	LCD_Send_Nib
 	movlw	.10		; wait 40us
 	call	LCD_delay_x4us
@@ -49,7 +50,8 @@ LCD_Setup
 LCD_Write_Message	    ; Message stored at FSR2, length stored in W
 	movwf   LCD_counter
 LCD_Loop_message
-	movf    POSTINC2, W
+	movf    POSTINC2, W ; Copies value from FSR2 to POSTINC2, then increment 
+			    ; FSR2, then move from POSTINC2 to WREG 
 	call    LCD_Send_Byte_D
 	decfsz  LCD_counter
 	bra	LCD_Loop_message
@@ -62,8 +64,9 @@ LCD_Send_Byte_I		    ; Transmits byte stored in W to instruction reg
 	movwf   LATB	    ; output data bits to LCD
 	bcf	LATB, LCD_RS	; Instruction write clear RS bit
 	call    LCD_Enable  ; Pulse enable Bit 
-LCD_Send_Nib
 	movf	LCD_tmp,W   ; swap nibbles, now do low nibble
+	
+LCD_Send_Nib
 	andlw   0x0f	    ; select just low nibble
 	movwf   LATB	    ; output data bits to LCD
 	bcf	LATB, LCD_RS    ; Instruction write clear RS bit
@@ -132,8 +135,29 @@ lcdlp1	decf 	LCD_cnt_l,F	; no carry when 0x00 -> 0xff
 	subwfb 	LCD_cnt_h,F	; no carry when 0x00 -> 0xff
 	bc 	lcdlp1		; carry, then loop again
 	return			; carry reset so return
-
-
-    end
-
-
+	
+LCD_clear   movlw	b'00000001'	; display clear
+	    call	LCD_Send_Byte_I
+	    movlw	.2		; wait 2ms
+	    call	LCD_delay_ms
+	    
+;LCD_shift    
+;	movlw    0x0A
+;	movwf    LCD_shift_counter
+;row_shift 
+;	movlw	b'0000011100'	; Shift cursor to right
+;	call	LCD_Send_Byte_I
+;	movlw	.10		; wait 2ms
+;	call	LCD_delay_x4us
+;	decfsz	LCD_shift_counter
+;	bra	row_shift
+;	return
+    
+LCD_row_shift
+	movlw	b'11000000'	; Shift cursor to right
+	call	LCD_Send_Byte_I
+	movlw	.2		; wait 2ms
+	call	LCD_delay_x4us
+	return
+	
+	end
