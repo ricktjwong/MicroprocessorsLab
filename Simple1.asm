@@ -11,6 +11,10 @@ start
     call    SPI_MasterInit
     movlw   0x05
     call    SPI_MasterTransmit
+    movlw   0xAA
+    call    SPI_MasterTransmit
+    movlw   0x55
+    call    SPI_MasterTransmit
     
     goto    0x0
     
