@@ -156,7 +156,7 @@ LCD_clear   movlw	b'00000001'	; display clear
 LCD_row_shift
 	movlw	b'11000000'	; Shift cursor to right
 	call	LCD_Send_Byte_I
-	movlw	.2		; wait 2ms
+	movlw	.20		; wait 20 us
 	call	LCD_delay_x4us
 	return
 	
