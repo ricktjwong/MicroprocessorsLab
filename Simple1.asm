@@ -27,7 +27,8 @@ setup	bcf	EECON1, CFGS	; point to Flash program memory
 	goto	start
 	
 	; ******* Main programme ****************************************
-start 	lfsr	FSR0, myArray	; Load FSR0 with address in RAM	
+start 	call	button_press
+	lfsr	FSR0, myArray	; Load FSR0 with address in RAM	
 	movlw	upper(myTable)	; address of data in PM
 	movwf	TBLPTRU		; load upper bits to TBLPTRU
 	movlw	high(myTable)	; address of data in PM
@@ -40,12 +41,11 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	movff	TABLAT, POSTINC0; move data from TABLAT to (FSR0), inc FSR0	
 	decfsz	counter		; count down to zero
 	bra	loop		; keep going until finished
-
-	call	LCD_row_shift
 	
 	movlw	myTable_l-1	; output message to LCD (leave out "\n")
-	lfsr	FSR2, myArray	; Load FSR0 with address in RAM	(0x400)
+	lfsr	FSR2, myArray	; Load FSR0 with address in RAM	(0x400)		
 	call	LCD_Write_Message
+	
 
 	movlw	myTable_l	; output message to UART
 	lfsr	FSR2, myArray
@@ -53,11 +53,17 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	
 	;call	LCD_clear
 
-	goto	$		; goto current line in code
+	goto	setup		; goto current line in code
 
 	; a delay subroutine if you need one, times around loop in delay_count
 delay	decfsz	delay_count	; decrement until zero
 	bra delay
+	return
+	
+button_press
+	setf	TRISE
+	btfsc	PORTE, 0	
+	call	LCD_row_shift
 	return
 
 	end
