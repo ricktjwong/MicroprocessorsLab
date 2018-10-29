@@ -1,6 +1,7 @@
 #include p18f87k22.inc
 
     global  keypad_input
+    extern LCD_delay_ms
 
 acs0	udata_acs   ; reserve data space in access ram
 hashmap	    res 1
@@ -18,12 +19,17 @@ keypad_input
     
     movlw	0x00
     movwf	TRISD, ACCESS
+    
+    movlw	0x01
+    call	LCD_delay_ms
     movff	PORTE, final_hex
 
     clrf	LATE			; Clear latch
     movlw	0xF0			; 11110000 - 0 sets outputs, 1 as inputs
     movwf	TRISE, ACCESS
     
+    movlw	0x01
+    call	LCD_delay_ms
     movf	PORTE, W
     addwf	final_hex, 1			;  Store in final_hex
     
