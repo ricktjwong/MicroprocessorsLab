@@ -140,9 +140,10 @@ LCD_clear   movlw	b'00000001'	; display clear
 	    call	LCD_Send_Byte_I
 	    movlw	.2		; wait 2ms
 	    call	LCD_delay_ms
+	    return
 	    
 LCD_row_shift
-	movlw	b'11000000'	; Shift cursor to right
+	movlw	b'11000000'	; Shift cursor down
 	call	LCD_Send_Byte_I
 	movlw	.20		; wait 20 us
 	call	LCD_delay_x4us

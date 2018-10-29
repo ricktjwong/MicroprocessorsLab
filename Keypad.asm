@@ -38,7 +38,7 @@ map
     movlw	0x77
     xorwf	final_hex, 0		; subtract, store in W. Status bit Z 0 if same
     btfsc	STATUS, Z
-    movlw	0x31
+    movlw	'1'
     btfsc	STATUS, Z	
     return
     

@@ -23,7 +23,8 @@ setup	bcf	EECON1, CFGS	; point to Flash program memory
 	goto	start
 	
 	; ******* Main programme ****************************************
-start 	call	keypad_input
+start 	call	LCD_row_shift
+	call	keypad_input
 	call	LCD_Send_Byte_D
 
 	goto	start		; goto current line in code
