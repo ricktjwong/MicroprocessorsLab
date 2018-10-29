@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_row_shift
+    global  LCD_Setup, LCD_Write_Message, LCD_clear, LCD_row_shift, LCD_Send_Byte_D
 
 acs0    udata_acs   ; named variables in access ram
 LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -141,18 +141,6 @@ LCD_clear   movlw	b'00000001'	; display clear
 	    movlw	.2		; wait 2ms
 	    call	LCD_delay_ms
 	    
-;LCD_shift    
-;	movlw    0x0A
-;	movwf    LCD_shift_counter
-;row_shift 
-;	movlw	b'0000011100'	; Shift cursor to right
-;	call	LCD_Send_Byte_I
-;	movlw	.10		; wait 2ms
-;	call	LCD_delay_x4us
-;	decfsz	LCD_shift_counter
-;	bra	row_shift
-;	return
-    
 LCD_row_shift
 	movlw	b'11000000'	; Shift cursor to right
 	call	LCD_Send_Byte_I
