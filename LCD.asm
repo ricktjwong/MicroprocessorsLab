@@ -1,6 +1,6 @@
 #include p18f87k22.inc
 
-    global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex
+    global  LCD_Setup, LCD_Write_Message, LCD_Write_Hex, LCD_row_shift
 
 acs0    udata_acs   ; named variables in access ram
 LCD_cnt_l   res 1   ; reserve 1 byte for variable LCD_cnt_l
@@ -8,6 +8,7 @@ LCD_cnt_h   res 1   ; reserve 1 byte for variable LCD_cnt_h
 LCD_cnt_ms  res 1   ; reserve 1 byte for ms counter
 LCD_tmp	    res 1   ; reserve 1 byte for temporary use
 LCD_counter res 1   ; reserve 1 byte for counting through nessage
+temp_nibble res 1
 
 acs_ovr	access_ovr
 LCD_hex_tmp res 1   ; reserve 1 byte for variable LCD_hex_tmp	
@@ -93,6 +94,9 @@ LCD_Send_Byte_D		    ; Transmits byte stored in W to data reg
 	movwf   LCD_tmp
 	swapf   LCD_tmp,W   ; swap nibbles, high nibble goes first
 	andlw   0x0f	    ; select just low nibble
+	movwf	temp_nibble
+	
+	
 	movwf   LATB	    ; output data bits to LCD
 	bsf	LATB, LCD_RS	; Data write set RS bit
 	call    LCD_Enable  ; Pulse enable Bit 
@@ -152,7 +156,13 @@ lcdlp1	decf 	LCD_cnt_l,F	; no carry when 0x00 -> 0xff
 	bc 	lcdlp1		; carry, then loop again
 	return			; carry reset so return
 
-
+LCD_row_shift
+	movlw	b'11000000'	; Shift cursor down
+	call	LCD_Send_Byte_I
+	movlw	.20		; wait 20 us
+	call	LCD_delay_x4us
+	return
+    
     end
 
 
