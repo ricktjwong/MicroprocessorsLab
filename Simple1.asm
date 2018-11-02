@@ -4,7 +4,8 @@
 	extern  LCD_Setup, LCD_Write_Message, LCD_row_shift	    ; external LCD subroutines
 	extern	LCD_Write_Hex			    ; external LCD subroutines
 	extern  ADC_Setup, ADC_Read		    ; external ADC routines
-	extern multiply
+	extern  multiply
+	extern high_byte, low_byte, temp_byte_ans1, temp_byte_ans2, temp_byte_ans3, temp_byte_ans4 
 	
 acs0	udata_acs   ; reserve data space in access ram
 counter	    res 1   ; reserve one byte for a counter variable
@@ -57,9 +58,17 @@ loop 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	
 measure_loop
 	call	ADC_Read
-	movf	ADRESH,W
+	
+	movff	ADRESH, high_byte
+	movff	ADRESL, low_byte
+	call	multiply
+	movf	temp_byte_ans1, W
 	call	LCD_Write_Hex
-	movf	ADRESL,W
+	movf	temp_byte_ans2, W
+	call	LCD_Write_Hex
+	movf	temp_byte_ans3, W
+	call	LCD_Write_Hex
+	movf	temp_byte_ans4, W
 	call	LCD_Write_Hex
 	goto	measure_loop		; goto current line in code
 
